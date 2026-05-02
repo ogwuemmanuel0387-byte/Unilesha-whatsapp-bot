@@ -1,1 +1,30 @@
-const express = require("express"); const axios = require("axios"); const app = express(); app.use(require("body-parser").json()); const TOKEN="9yxzvx74"; const ID="instance172742"; const URL=`https://api.ultramsg.com/${ID}/messages/chat`; app.post("/webhook", async (req,res)=>{ const msg=req.body; if(msg.event_type=="message_received"){ const from=msg.data.from; const text=msg.data.body.toLowerCase(); let reply="Hello bestie! I dey here ☁️ How I fit help?"; if(text.includes("price")) reply="Price na ₦5000. Pay to 0123456789 Opay. Send proof ✅"; if(text.includes("hello")||text.includes("hi")) reply="Omo I see you 😎 Wetin you want buy today?"; await axios.post(URL,{token:TOKEN,to:from,body:reply}); } res.sendStatus(200); }); app.listen(3000,()=>console.log("Bot Live on 3000"));
+
+const express = require('express');
+const axios = require('axios');
+const app = express();
+
+app.use(express.json());
+
+// THIS IS THE MISSING PIECE - ULTRAMSG HITS HERE
+app.post('/', async (req, res) => {
+  console.log('Webhook hit:', req.body);
+  
+  const userMsg = req.body.body;
+  const userNumber = req.body.from;
+  
+  if (userMsg && userMsg.toLowerCase() === 'hi') {
+    await axios.post(`https://api.ultramsg.com/${process.env.INSTANCE_ID}/messages/chat`, {
+      token: process.env.TOKEN,
+      to: userNumber,
+      body: 'YES BESTIE IT WORKS! 🎉 Render bot is ALIVE!'
+    });
+  }
+  
+  res.sendStatus(200);
+});
+
+// THIS FIXES THE PORT CRASH
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Bot running on port ${PORT}`);
+});
